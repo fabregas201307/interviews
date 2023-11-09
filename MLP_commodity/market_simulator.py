@@ -1,5 +1,6 @@
 import heapq
 
+
 def simulate_orders(orders: list) -> list:
     result = list()
     limit_orders = dict()
@@ -35,7 +36,6 @@ def simulate_orders(orders: list) -> list:
                 else:
                     heapq.heappush(limit_orders.get(cur_key), (order.get("price"), order))
 
-
         else:
             # order is "market", expire if not filled
             # cur_key = (order.get("symbol"), order.get("action"))
@@ -49,6 +49,8 @@ def simulate_orders(orders: list) -> list:
                 # market order expires
                 pass
 
+    result = sort_results(result)
+    return result
 
 def fill_order(order, cur_heap, cache_list):
     ## assume order is buy and cur_heap is sell;  or the other way
@@ -116,6 +118,12 @@ def fill_order(order, cur_heap, cache_list):
             return None
     
 
+def sort_results(records) -> list:
+    tuples = [(j.split(":")[0], j) for j in records]
+    sorted_list = sorted(tuples, key=lambda x: x[0])
+    result = [i[1] for i in sorted_list]
+    return result
+
 
 if __name__ == '__main__':
     # fptr = open(os.environ['OUTPUT_PATH'], 'w')
@@ -129,8 +137,8 @@ if __name__ == '__main__':
     order_4 = {"type": "limit", "action": "sell", "quantity": 10, "symbol": "AAPL", "user": "d", "price": 110}
     order_5 = {"type": "limit", "action": "sell", "quantity": 10, "symbol": "AAPL", "user": "e", "price": 95}
     order_6 = {"type": "limit", "action": "sell", "quantity": 10, "symbol": "AAPL", "user": "f", "price": 100}
-    # orders = [order_1, order_2, order_3, order_4, order_5, order_6]
-    orders = [order_1, order_2]
+    orders = [order_1, order_2, order_3, order_4, order_5, order_6]
+    # orders = [order_1, order_2]
 
 
     # for _ in range(orders_count):
