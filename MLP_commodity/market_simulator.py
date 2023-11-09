@@ -36,10 +36,10 @@ def simulate_orders(orders: list) -> list:
             # order is "market", expire if not filled
             # cur_key = (order.get("symbol"), order.get("action"))
             if (order.get("action") == "buy") and ((order.get("symbol"), "sell") in limit_orders):
-                # top_item = heapq.heapop(limit_orders.get((cur_key[0]), "sell"))
+                # top_item = heapq.heappop(limit_orders.get((cur_key[0]), "sell"))
                 _ = fill_order(order=order, cur_heap=limit_orders.get((order.get("symbol"), "sell")), cache_list=result)
             elif (order.get("action") == "sell") and ((order.get("symbol"), "buy") in limit_orders):
-                # top_item = heapq.heapop(limit_orders.get((cur_key[0]), "buy"))
+                # top_item = heapq.heappop(limit_orders.get((cur_key[0]), "buy"))
                 _ = fill_order(order=order, cur_heap=limit_orders.get((order.get("symbol"), "buy")), cache_list=result)
             else:
                 # market order expires
@@ -49,7 +49,7 @@ def simulate_orders(orders: list) -> list:
 def fill_order(order, cur_heap, cache_list):
     ## assume order is buy and cur_heap is sell;  or the other way
     ## essentialy valid order and cur_heap to fill
-    top_item = heapq.heapop(cur_heap)
+    top_item = heapq.heappop(cur_heap)
     if order.get("type") == "limit":
         ## to fill limit order
         if order.get("action") == "buy" and top_item[1].get("action") == "sell":
@@ -114,17 +114,28 @@ def fill_order(order, cur_heap, cache_list):
 
 
 if __name__ == '__main__':
-    fptr = open(os.environ['OUTPUT_PATH'], 'w')
+    # fptr = open(os.environ['OUTPUT_PATH'], 'w')
 
-    orders_count = int(input().strip())
+    # orders_count = int(input().strip())
 
-    orders = []
+    # orders = []
+    order_1 = {"type": "limit", "action": "sell", "quantity": 10, "symbol": "AAPL", "user": "a", "price": 100}
+    order_2 = {"type": "market", "action": "buy", "quantity": 1, "symbol": "AAPL", "user": "b"}
+    order_3 = {"type": "limit", "action": "sell", "quantity": 20, "symbol": "AAPL", "user": "c", "price": 90}
+    order_4 = {"type": "limit", "action": "sell", "quantity": 10, "symbol": "AAPL", "user": "d", "price": 110}
+    order_5 = {"type": "limit", "action": "sell", "quantity": 10, "symbol": "AAPL", "user": "e", "price": 95}
+    order_6 = {"type": "limit", "action": "sell", "quantity": 10, "symbol": "AAPL", "user": "f", "price": 100}
+    # orders = [order_1, order_2, order_3, order_4, order_5, order_6]
+    orders = [order_1, order_2]
 
-    for _ in range(orders_count):
-        orders_item = json.loads(input())
-        orders.append(orders_item)
+
+    # for _ in range(orders_count):
+    #     orders_item = json.loads(input())
+    #     orders.append(orders_item)
 
     result = simulate_orders(orders)
-    fptr.write(result + '\n')
-    fptr.close()
+    for record in result:
+        print(record)
+    # fptr.write(result + '\n')
+    # fptr.close()
 
