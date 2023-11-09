@@ -9,13 +9,16 @@ def simulate_orders(orders: list) -> list:
             # order is limit
             cur_key = (order.get("symbol"), order.get("action"))
             if (order.get("action") == "buy") and ((order.get("symbol"), "sell") in limit_orders):
-                _ = fill_limit_order(order=order, cur_heap=limit_orders.get((order.get("symbol"), "sell")), cache_list=result)
+                _ = fill_order(order=order, cur_heap=limit_orders.get((order.get("symbol"), "sell")), cache_list=result)
             elif (order.get("action") == "sell") and ((order.get("symbol"), "buy") in limit_orders):
-                _ = fill_limit_order(order=order, cur_heap=limit_orders.get((order.get("symbol"), "buy")), cache_list=result)
+                _ = fill_order(order=order, cur_heap=limit_orders.get((order.get("symbol"), "buy")), cache_list=result)
+            else:
+                # can't fill this limit order
+                pass
 
+            # after fill this limit order, we may still need to push it into heapq
 
-
-            elif cur_key in limit_orders:
+            if cur_key in limit_orders:
                 if cur_key[1] == "buy":
                     # kept in maximum heap
                     cur_heap = limit_orders.get(cur_key)
@@ -34,91 +37,80 @@ def simulate_orders(orders: list) -> list:
             # cur_key = (order.get("symbol"), order.get("action"))
             if (order.get("action") == "buy") and ((order.get("symbol"), "sell") in limit_orders):
                 # top_item = heapq.heapop(limit_orders.get((cur_key[0]), "sell"))
-                _ = fill_market_order(order=order, cur_heap=limit_orders.get((order.get("symbol"), "sell")), cache_list=result)
+                _ = fill_order(order=order, cur_heap=limit_orders.get((order.get("symbol"), "sell")), cache_list=result)
             elif (order.get("action") == "sell") and ((order.get("symbol"), "buy") in limit_orders):
                 # top_item = heapq.heapop(limit_orders.get((cur_key[0]), "buy"))
-                _ = fill_market_order(order=order, cur_heap=limit_orders.get((order.get("symbol"), "buy")), cache_list=result)
+                _ = fill_order(order=order, cur_heap=limit_orders.get((order.get("symbol"), "buy")), cache_list=result)
             else:
                 # market order expires
-                continue
+                pass
 
 
-def fill_market_order(order, cur_heap, cache_list):
+def fill_order(order, cur_heap, cache_list):
     ## assume order is buy and cur_heap is sell;  or the other way
     ## essentialy valid order and cur_heap to fill
     top_item = heapq.heapop(cur_heap)
-    if order.get("action") == "buy" and top_item[1].get("action") == "sell":
-        if (order.get("price")>=top_item[1].get("price")) and (order.get("quantity") <= top_item[1].get("quantity")):
-            top_item[1]["quantity"] = top_item[1].get("quantity") - order.get("quantity")
-            trade_record_str_1 = f"""{order.get("user")}:{order.get("symbol")}:{order.get("quantity")}:USD:{top_item[1].get("price")}"""
-            trade_record_str_2 = f"""{top_item[1].get("user")}:{top_item[1].get("symbol")}:{(-1) * top_item[1].get("quantity")}:USD:{top_item[1].get("price")}"""
-            cache_list.append(trade_record_str_1)
-            cache_list.append(trade_record_str_2)
-            heapq.heappush(cur_heap, top_item) # push back modified item
-        elif order.get("price")>=top_item[1].get("price"):
-            trade_record_str = ""  # all top_item is used to fill
-            cache_list.append(trade_record_str)
-            order["quantity"] = order["quantity"] - top_item.get("quantity")
-            fill_market_order(order, cur_heap, cache_list)
+    if order.get("type") == "limit":
+        ## to fill limit order
+        if order.get("action") == "buy" and top_item[1].get("action") == "sell":
+            if (order.get("price")>=top_item[1].get("price")) and (order.get("quantity") <= top_item[1].get("quantity")):
+                top_item[1]["quantity"] = top_item[1].get("quantity") - order.get("quantity")
+                trade_record_str_1 = f"""{order.get("user")}:{order.get("symbol")}:{order.get("quantity")}:USD:{top_item[1].get("price")}"""
+                trade_record_str_2 = f"""{top_item[1].get("user")}:{top_item[1].get("symbol")}:{(-1) * order.get("quantity")}:USD:{top_item[1].get("price")}"""
+                cache_list.append(trade_record_str_1)
+                cache_list.append(trade_record_str_2)
+                heapq.heappush(cur_heap, top_item) # push back modified item
+            elif order.get("price")>=top_item[1].get("price"):
+                trade_record_str_1 = f"""{order.get("user")}:{order.get("symbol")}:{top_item[1].get("quantity")}:USD:{top_item[1].get("price")}"""
+                trade_record_str_2 = f"""{top_item[1].get("user")}:{top_item[1].get("symbol")}:{(-1) * top_item[1].get("quantity")}:USD:{top_item[1].get("price")}"""
+                cache_list.append(trade_record_str_1)
+                cache_list.append(trade_record_str_2)
+                order["quantity"] = order["quantity"] - top_item.get("quantity")
+                fill_order(order, cur_heap, cache_list)
+            else:
+                # market_order expired
+                return None
+            
+        elif order.get("action") == "sell" and top_item[1].get("action") == "buy":
+            if (order.get("price")<=top_item[1].get("price")) and (order.get("quantity") <= top_item[1].get("quantity")):
+                top_item[1]["quantity"] = top_item[1].get("quantity") - order.get("quantity")
+                trade_record_str_1 = f"""{order.get("user")}:{order.get("symbol")}:{order.get("quantity")}:USD:{top_item[1].get("price")}"""
+                trade_record_str_2 = f"""{top_item[1].get("user")}:{top_item[1].get("symbol")}:{(-1) * order.get("quantity")}:USD:{top_item[1].get("price")}"""
+                cache_list.append(trade_record_str_1)
+                cache_list.append(trade_record_str_2)
+                heapq.heappush(cur_heap, top_item) # push back modified item
+            elif order.get("price")<=top_item[1].get("price"):
+                trade_record_str_1 = f"""{order.get("user")}:{order.get("symbol")}:{top_item[1].get("quantity")}:USD:{top_item[1].get("price")}"""
+                trade_record_str_2 = f"""{top_item[1].get("user")}:{top_item[1].get("symbol")}:{(-1) * top_item[1].get("quantity")}:USD:{top_item[1].get("price")}"""
+                cache_list.append(trade_record_str_1)
+                cache_list.append(trade_record_str_2)
+                order["quantity"] = order["quantity"] - top_item.get("quantity")
+                fill_order(order, cur_heap, cache_list)
+            else:
+                # market_order expired
+                return None
         else:
-            # market_order expired
-            return None
-        
-    elif order.get("action") == "sell" and top_item[1].get("action") == "buy":
-        if (order.get("price")<=top_item[1].get("price")) and (order.get("quantity") <= top_item[1].get("quantity")):
-            top_item[1]["quantity"] = top_item[1].get("quantity") - order.get("quantity")
-            trade_record_str = ""
-            cache_list.append(trade_record_str)
-            heapq.heappush(cur_heap, top_item) # push back modified item
-        elif order.get("price")<=top_item[1].get("price"):
-            trade_record_str = ""  # all top_item is used to fill
-            cache_list.append(trade_record_str)
-            order["quantity"] = order["quantity"] - top_item.get("quantity")
-            fill_market_order(order, cur_heap, cache_list)
-        else:
-            # market_order expired
             return None
     else:
-        return None
+        ## to fill market order
+        if order.get("action") == "buy" and top_item[1].get("action") == "sell":
+            if (order.get("quantity") <= top_item[1].get("quantity")):
+                top_item[1]["quantity"] = top_item[1].get("quantity") - order.get("quantity")
+                trade_record_str_1 = f"""{order.get("user")}:{order.get("symbol")}:{order.get("quantity")}:USD:{top_item[1].get("price")}"""
+                trade_record_str_2 = f"""{top_item[1].get("user")}:{top_item[1].get("symbol")}:{(-1) * order.get("quantity")}:USD:{top_item[1].get("price")}"""
+                cache_list.append(trade_record_str_1)
+                cache_list.append(trade_record_str_2)
+                heapq.heappush(cur_heap, top_item) # push back modified item
+            else:
+                trade_record_str_1 = f"""{order.get("user")}:{order.get("symbol")}:{top_item[1].get("quantity")}:USD:{top_item[1].get("price")}"""
+                trade_record_str_2 = f"""{top_item[1].get("user")}:{top_item[1].get("symbol")}:{(-1) * top_item[1].get("quantity")}:USD:{top_item[1].get("price")}"""
+                cache_list.append(trade_record_str_1)
+                cache_list.append(trade_record_str_2)
+                order["quantity"] = order["quantity"] - top_item.get("quantity")
+                fill_order(order, cur_heap, cache_list)
+        else:
+            return None
     
-
-def fill_limit_order(order, cur_heap, cache_list):
-    ## assume order is buy and cur_heap is sell;  or the other way
-    ## essentialy valid order and cur_heap to fill
-    top_item = heapq.heapop(cur_heap)
-    if order.get("action") == "buy" and top_item[1].get("action") == "sell":
-        if (order.get("price")>=top_item[1].get("price")) and (order.get("quantity") <= top_item[1].get("quantity")):
-            top_item[1]["quantity"] = top_item[1].get("quantity") - order.get("quantity")
-            trade_record_str_1 = f"""{order.get("user")}:{order.get("symbol")}:{order.get("quantity")}:USD:{top_item[1].get("price")}"""
-            trade_record_str_2 = f"""{top_item[1].get("user")}:{top_item[1].get("symbol")}:{(-1) * top_item[1].get("quantity")}:USD:{top_item[1].get("price")}"""
-            cache_list.append(trade_record_str_1)
-            cache_list.append(trade_record_str_2)
-            heapq.heappush(cur_heap, top_item) # push back modified item
-        elif order.get("price")>=top_item[1].get("price"):
-            trade_record_str = ""  # all top_item is used to fill
-            cache_list.append(trade_record_str)
-            order["quantity"] = order["quantity"] - top_item.get("quantity")
-            fill_market_order(order, cur_heap, cache_list)
-        else:
-            # market_order expired
-            return None
-        
-    elif order.get("action") == "sell" and top_item[1].get("action") == "buy":
-        if (order.get("price")<=top_item[1].get("price")) and (order.get("quantity") <= top_item[1].get("quantity")):
-            top_item[1]["quantity"] = top_item[1].get("quantity") - order.get("quantity")
-            trade_record_str = ""
-            cache_list.append(trade_record_str)
-            heapq.heappush(cur_heap, top_item) # push back modified item
-        elif order.get("price")<=top_item[1].get("price"):
-            trade_record_str = ""  # all top_item is used to fill
-            cache_list.append(trade_record_str)
-            order["quantity"] = order["quantity"] - top_item.get("quantity")
-            fill_market_order(order, cur_heap, cache_list)
-        else:
-            # market_order expired
-            return None
-    else:
-        return None
 
 
 if __name__ == '__main__':
@@ -136,4 +128,3 @@ if __name__ == '__main__':
     fptr.write(result + '\n')
     fptr.close()
 
-    
