@@ -52,6 +52,7 @@ def simulate_orders(orders: list) -> list:
     result = sort_results(result)
     return result
 
+
 def fill_order(order, cur_heap, cache_list):
     ## assume order is buy and cur_heap is sell;  or the other way
     ## essentialy valid order and cur_heap to fill
