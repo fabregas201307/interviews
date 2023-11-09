@@ -30,6 +30,10 @@ def simulate_orders(orders: list) -> list:
             else:
                 # current key never seen, keep one empty heap
                 limit_orders[cur_key] = []
+                if cur_key[1] == "buy":
+                    heapq.heappush(limit_orders.get(cur_key), ((-1) * order.get("price"), order))
+                else:
+                    heapq.heappush(limit_orders.get(cur_key), (order.get("price"), order))
 
 
         else:
