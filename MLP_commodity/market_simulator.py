@@ -142,10 +142,17 @@ if __name__ == '__main__':
         {"type": "limit", "action": "sell", "quantity": 20, "symbol": "AAPL", "user": "c", "price": 90},
         {"type": "limit", "action": "sell", "quantity": 10, "symbol": "AAPL", "user": "d", "price": 110},
         {"type": "limit", "action": "sell", "quantity": 10, "symbol": "AAPL", "user": "e", "price": 95},
+        {"type": "limit", "action": "sell", "quantity": 20, "symbol": "AMZN", "user": "c", "price": 90},
+        {"type": "limit", "action": "sell", "quantity": 10, "symbol": "GOOG", "user": "d", "price": 110},
+        {"type": "limit", "action": "sell", "quantity": 10, "symbol": "XY", "user": "e", "price": 95},
         {"type": "limit", "action": "sell", "quantity": 10, "symbol": "AAPL", "user": "f", "price": 100},
         {"type": "market", "action": "buy", "quantity": 1, "symbol": "AAPL", "user": "g"},
         {"type": "limit", "action": "buy", "quantity": 10, "symbol": "AAPL", "user": "h", "price": 150},
+        {"type": "limit", "action": "buy", "quantity": 20, "symbol": "AMZN", "user": "h", "price": 100},
+        {"type": "limit", "action": "buy", "quantity": 30, "symbol": "AMZN", "user": "a", "price": 90},
+        {"type": "limit", "action": "buy", "quantity": 10, "symbol": "AMZN", "user": "c", "price": 90},
         {"type": "limit", "action": "buy", "quantity": 60, "symbol": "AAPL", "user": "i", "price": 150},
+        {"type": "market", "action": "buy", "quantity": 1, "symbol": "XY", "user": "a"},
     ]
 
     # orders = [order_1, order_2, order_3, order_4, order_5, order_6]
