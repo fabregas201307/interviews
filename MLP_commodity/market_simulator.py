@@ -184,10 +184,19 @@ def sort_results(records) -> str:
         if username not in ans:
             ans[username] = dict()
             ans[username]["USD"] = money
-            ans[username]["trades"] = i[1].split()[1]
+            ans[username]["trades"] = [i[1].split()[1]]
         else:
             ans.get(username)["USD"] = ans.get(username)["USD"] + money
             ans.get(username)["trades"] = ans.get(username)["trades"] + " " + i[1].split()[1]
+            symbol = i[1].split()[1].split(":")[0]
+            for idx in range(len(ans[username]["trades"])):
+                exist_trade = ans[username]["trades"][idx]
+                if symbol in exist_trade:
+                    cur_number = int(exist_trade.split(":")[1]) + int(i[1].split()[1].split(":")[1])
+                    ans[username]["trades"][idx] = f"""{symbol}:{cur_number}"""
+                else:
+                    ans[username]["trades"].append(i[1].split()[1])
+
     
     result = list()
     for username in ans:
