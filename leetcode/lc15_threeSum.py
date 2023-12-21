@@ -46,6 +46,8 @@ class Solution:
 if __name__ == "__main__":
     solution = Solution()
     test_1 = [-1,0,1,2,-1,-4]
-    ans = solution.threeSum(nums=test_1)
+    test_2 = [0,1,1]
+    test_3 = [0,0,0]
+    ans = solution.threeSum(nums=test_3)
     print(ans)
  
